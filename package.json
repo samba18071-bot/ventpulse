@@ -1,0 +1,23 @@
+{
+  "name": "ventpulse",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "start": "node scripts/dev.mjs",
+    "build": "vite build",
+    "preview": "vite preview",
+    "dev:api": "node --watch src/server.js",
+    "server": "node src/server.js",
+    "test:api": "node scripts/api-smoke.mjs"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "lucide-react": "^0.468.0",
+    "pg": "^8.23.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "vite": "^6.0.5"
+  }
+}

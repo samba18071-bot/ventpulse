@@ -1,0 +1,10 @@
+CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, email TEXT UNIQUE NOT NULL, name TEXT NOT NULL, password_hash TEXT NOT NULL, role TEXT NOT NULL DEFAULT 'operator', created_at TIMESTAMPTZ NOT NULL);
+CREATE TABLE IF NOT EXISTS buildings (id SERIAL PRIMARY KEY, name TEXT NOT NULL, location TEXT NOT NULL, health REAL NOT NULL DEFAULT 100, status TEXT NOT NULL DEFAULT 'Nominal', tonnage TEXT, units INTEGER DEFAULT 0, created_at TIMESTAMPTZ NOT NULL);
+CREATE TABLE IF NOT EXISTS alerts (id SERIAL PRIMARY KEY, building_id INTEGER REFERENCES buildings(id), level TEXT NOT NULL, title TEXT NOT NULL, detail TEXT, status TEXT NOT NULL DEFAULT 'open', created_at TIMESTAMPTZ NOT NULL);
+CREATE TABLE IF NOT EXISTS metrics (id SERIAL PRIMARY KEY, building_id INTEGER REFERENCES buildings(id), name TEXT NOT NULL, value REAL NOT NULL, unit TEXT, recorded_at TIMESTAMPTZ NOT NULL);
+CREATE TABLE IF NOT EXISTS telemetry (id SERIAL PRIMARY KEY, device_id TEXT NOT NULL, protocol TEXT NOT NULL, metric TEXT NOT NULL, value REAL NOT NULL, anomaly_score REAL NOT NULL DEFAULT 0, recorded_at TIMESTAMPTZ NOT NULL);
+CREATE TABLE IF NOT EXISTS devices (id SERIAL PRIMARY KEY, device_id TEXT UNIQUE NOT NULL, building_id INTEGER REFERENCES buildings(id), protocol TEXT NOT NULL, metadata JSONB, registered_at TIMESTAMPTZ NOT NULL);
+CREATE TABLE IF NOT EXISTS work_orders (id SERIAL PRIMARY KEY, building_id INTEGER REFERENCES buildings(id), title TEXT NOT NULL, priority TEXT NOT NULL DEFAULT 'medium', status TEXT NOT NULL DEFAULT 'open', created_by INTEGER, created_at TIMESTAMPTZ NOT NULL);
+CREATE TABLE IF NOT EXISTS audit_events (id SERIAL PRIMARY KEY, user_id INTEGER, action TEXT NOT NULL, entity_type TEXT, entity_id TEXT, details JSONB, created_at TIMESTAMPTZ NOT NULL);
+CREATE INDEX IF NOT EXISTS telemetry_recorded_at_idx ON telemetry(recorded_at);
+CREATE INDEX IF NOT EXISTS audit_created_at_idx ON audit_events(created_at);

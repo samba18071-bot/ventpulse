@@ -1,0 +1,11 @@
+const base = process.env.API_URL || 'http://localhost:8787'
+const call = async (path, options = {}) => { const r = await fetch(base + path, { ...options, headers: { 'Content-Type': 'application/json', ...(options.headers || {}) } }); const data = await r.json(); if (!r.ok) throw new Error(`${path}: ${r.status} ${JSON.stringify(data)}`); return data }
+const health = await call('/health'); if (!health.ok) throw new Error('health failed')
+const login = await call('/api/auth/login', { method: 'POST', body: JSON.stringify({ email: 'demo@ventpulse.local', password: 'demo' }) }); const auth = { Authorization: `Bearer ${login.token}` }
+const buildings = await call('/api/buildings', { headers: auth }); if (!buildings.buildings.length) throw new Error('seed missing')
+const device = await call('/api/devices', { method: 'POST', headers: auth, body: JSON.stringify({ deviceId: `smoke-${Date.now()}`, protocol: 'mqtt', buildingId: buildings.buildings[0].id }) });
+const telemetry = await call('/api/telemetry', { method: 'POST', headers: auth, body: JSON.stringify({ protocol: 'mqtt', deviceId: device.device.device_id, metric: 'temperature', value: 22 }) });
+const intelligence = await call('/api/intelligence/analyze', { method: 'POST', headers: auth, body: JSON.stringify({ telemetry_payload: { asset_id: 'CHLR-01', timestamp: new Date().toISOString(), vibration_ips: 2.1, pressure_drop_wg: 0.42, phase_imbalance_pct: 0.8, motor_temp_c: 47, power_draw_kw: 118 }, history: [{ asset_id: 'CHLR-01', timestamp: new Date(Date.now() - 86400000).toISOString(), vibration_ips: 1.9, pressure_drop_wg: 0.4, phase_imbalance_pct: 0.7, motor_temp_c: 40, power_draw_kw: 100 }, { asset_id: 'CHLR-01', timestamp: new Date(Date.now() - 172800000).toISOString(), vibration_ips: 1.7, pressure_drop_wg: 0.4, phase_imbalance_pct: 0.6, motor_temp_c: 40, power_draw_kw: 100 }] }) });
+if (!intelligence.alert?.ventpulse_alert) throw new Error('intelligence alert missing')
+await call('/api/work-orders', { method: 'POST', headers: auth, body: JSON.stringify({ title: 'Smoke test inspection', priority: 'low' }) });
+console.log(`API smoke passed: ${buildings.buildings.length} buildings, telemetry ${telemetry.telemetry.id}`)
